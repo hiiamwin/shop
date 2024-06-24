@@ -1,0 +1,108 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model brand {
+  brand_id   String    @id @db.Uuid
+  brand_name String    @db.VarChar
+  product    product[]
+}
+
+model category {
+  category_id   String    @id @db.Uuid
+  category_name String    @db.VarChar
+  product       product[]
+}
+
+model feedback {
+  feedback_id      String  @id @db.Uuid
+  user_id          String  @db.Uuid
+  product_id       String  @db.Uuid
+  feedback_content String  @db.VarChar
+  feedback_rating  Decimal @db.Decimal
+  product          product @relation(fields: [product_id], references: [product_id], onDelete: NoAction, onUpdate: NoAction, map: "feedback_product_fk")
+  user             user    @relation(fields: [user_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction, map: "feedback_user_fk")
+}
+
+model image {
+  image_id   String  @id @db.Uuid
+  product_id String  @db.Uuid
+  image_link String  @db.VarChar
+  product    product @relation(fields: [product_id], references: [product_id], onDelete: NoAction, onUpdate: NoAction, map: "image_product_fk")
+}
+
+model order {
+  order_id       String         @id @db.Uuid
+  user_id        String         @db.Uuid
+  total          Int
+  order_datetime String         @db.VarChar
+  phone          String         @db.VarChar
+  status         String         @db.VarChar
+  user           user           @relation(fields: [user_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction, map: "order_user_fk")
+  order_detail   order_detail[]
+}
+
+model order_detail {
+  order_detail_id String  @id @db.Uuid
+  order_id        String  @db.Uuid
+  product_id      String  @db.Uuid
+  voucher_id      String  @db.Uuid
+  quantity_buy    Int
+  price           Int
+  order           order   @relation(fields: [order_id], references: [order_id], onDelete: NoAction, onUpdate: NoAction, map: "order_detail_order_fk")
+  product         product @relation(fields: [product_id], references: [product_id], onDelete: NoAction, onUpdate: NoAction, map: "order_detail_product_fk")
+  voucher         voucher @relation(fields: [voucher_id], references: [voucher_id], onDelete: NoAction, onUpdate: NoAction, map: "order_detail_voucher_fk")
+}
+
+model product {
+  product_id          String         @id @db.Uuid
+  brand_id            String         @db.Uuid
+  category_id         String         @db.Uuid
+  user_id             String         @db.Uuid
+  product_name        String         @db.VarChar
+  product_description String         @db.VarChar
+  product_price       Int
+  product_quantity    Int
+  product_status      Boolean
+  feedback            feedback[]
+  image               image[]
+  order_detail        order_detail[]
+  brand               brand          @relation(fields: [brand_id], references: [brand_id], onDelete: NoAction, onUpdate: NoAction, map: "product_brand_fk")
+  category            category       @relation(fields: [category_id], references: [category_id], onDelete: NoAction, onUpdate: NoAction, map: "product_category_fk")
+  user                user           @relation(fields: [user_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction, map: "product_user_fk")
+  voucher             voucher[]
+}
+
+model role {
+  role_id   String @id @db.Uuid
+  role_name String @db.VarChar
+  user      user[]
+}
+
+model user {
+  user_id  String     @id @db.Uuid
+  role_id  String     @db.Uuid
+  email    String     @db.VarChar
+  password String     @db.VarChar
+  name     String     @db.VarChar
+  address  String     @db.VarChar
+  status   String     @db.VarChar
+  feedback feedback[]
+  order    order[]
+  product  product[]
+  role     role       @relation(fields: [role_id], references: [role_id], onDelete: NoAction, onUpdate: NoAction, map: "user_role_fk")
+}
+
+model voucher {
+  voucher_id       String         @id @db.Uuid
+  product_id       String         @db.Uuid
+  voucher_discount Int
+  voucher_amount   Int
+  order_detail     order_detail[]
+  product          product        @relation(fields: [product_id], references: [product_id], onDelete: NoAction, onUpdate: NoAction, map: "voucher_product_fk")
+}
